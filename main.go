@@ -123,8 +123,54 @@ func deleteUser(w http.ResponseWriter, r *http.Request) {
 
 }
 
-func updateUser(w http.ResponseWriter, r http.Request) {
+func atoi(s string) int {
+	var num int
+	fmt.Sscanf(s, "%d", &num)
+	return num
+}
 
+func updateUser(w http.ResponseWriter, r *http.Request) {
+	id := r.URL.Query().Get("id")
+
+	var user User
+
+	err := json.NewDecoder(r.Body).Decode(&user)
+
+	if err != nil {
+		http.Error(w, err.Error(), 400)
+		return
+	}
+
+	query := `
+		UPDATE users
+		SET name = ? , email = ?, password = ?
+		WHERE id = ?
+	`
+
+	result, err := db.Exec(
+
+		query,
+		user.Name,
+		user.Email,
+		user.Password,
+		id,
+	)
+
+	if err != nil {
+		http.Error(w, err.Error(), 500)
+		return
+	}
+
+	rowsAffected, _ := result.RowsAffected()
+
+	if rowsAffected == 0 {
+		http.Error(w, "user not found", 404)
+		return
+	}
+
+	user.ID = atoi(id)
+
+	json.NewEncoder(w).Encode(user)
 }
 
 func main() {
@@ -143,6 +189,10 @@ func main() {
 
 		if r.Method == "DELETE" {
 			deleteUser(w, r)
+		}
+
+		if r.Method == "PUT" {
+			updateUser(w, r)
 		}
 	})
 
