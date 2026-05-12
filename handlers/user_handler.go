@@ -8,6 +8,7 @@ import (
 	"golang-api/logger"
 	"golang-api/models"
 	"golang-api/services"
+	"golang-api/utils"
 )
 
 func CreateUser(w http.ResponseWriter, r *http.Request) {
@@ -23,10 +24,10 @@ func CreateUser(w http.ResponseWriter, r *http.Request) {
 			err,
 		)
 
-		http.Error(
+		utils.SendError(
 			w,
-			err.Error(),
 			http.StatusBadRequest,
+			err.Error(),
 		)
 
 		return
@@ -41,10 +42,10 @@ func CreateUser(w http.ResponseWriter, r *http.Request) {
 			err,
 		)
 
-		http.Error(
+		utils.SendError(
 			w,
-			"Failed to create user",
 			http.StatusInternalServerError,
+			err.Error(),
 		)
 
 		return
@@ -57,9 +58,12 @@ func CreateUser(w http.ResponseWriter, r *http.Request) {
 		user.Email,
 	)
 
-	w.Header().Set("Content-Type", "application/json")
-
-	json.NewEncoder(w).Encode(user)
+	utils.SendSuccess(
+		w,
+		http.StatusCreated,
+		"User created successfully",
+		user,
+	)
 }
 
 func GetUsers(w http.ResponseWriter, r *http.Request) {
@@ -73,10 +77,10 @@ func GetUsers(w http.ResponseWriter, r *http.Request) {
 			err,
 		)
 
-		http.Error(
+		utils.SendError(
 			w,
-			"Failed to fetch users",
 			http.StatusInternalServerError,
+			"Failed to fetch users",
 		)
 
 		return
@@ -86,9 +90,12 @@ func GetUsers(w http.ResponseWriter, r *http.Request) {
 		"Fetched all users successfully",
 	)
 
-	w.Header().Set("Content-Type", "application/json")
-
-	json.NewEncoder(w).Encode(users)
+	utils.SendSuccess(
+		w,
+		http.StatusOK,
+		"Users fetched successfully",
+		users,
+	)
 }
 
 func DeleteUser(w http.ResponseWriter, r *http.Request) {
@@ -104,10 +111,10 @@ func DeleteUser(w http.ResponseWriter, r *http.Request) {
 			err,
 		)
 
-		http.Error(
+		utils.SendError(
 			w,
-			err.Error(),
 			http.StatusInternalServerError,
+			err.Error(),
 		)
 
 		return
@@ -118,11 +125,12 @@ func DeleteUser(w http.ResponseWriter, r *http.Request) {
 		id,
 	)
 
-	w.Header().Set("Content-Type", "application/json")
-
-	json.NewEncoder(w).Encode(map[string]string{
-		"message": "User deleted successfully",
-	})
+	utils.SendSuccess(
+		w,
+		http.StatusOK,
+		"User deleted successfully",
+		nil,
+	)
 }
 
 func atoi(s string) int {
@@ -149,10 +157,10 @@ func UpdateUser(w http.ResponseWriter, r *http.Request) {
 			err,
 		)
 
-		http.Error(
+		utils.SendError(
 			w,
-			err.Error(),
 			http.StatusBadRequest,
+			err.Error(),
 		)
 
 		return
@@ -167,10 +175,10 @@ func UpdateUser(w http.ResponseWriter, r *http.Request) {
 			err,
 		)
 
-		http.Error(
+		utils.SendError(
 			w,
-			err.Error(),
 			http.StatusInternalServerError,
+			err.Error(),
 		)
 
 		return
@@ -183,8 +191,10 @@ func UpdateUser(w http.ResponseWriter, r *http.Request) {
 		id,
 	)
 
-	w.Header().Set("Content-Type", "application/json")
-
-	json.NewEncoder(w).Encode(user)
+	utils.SendSuccess(
+		w,
+		http.StatusOK,
+		"User updated successfully",
+		user,
+	)
 }
-

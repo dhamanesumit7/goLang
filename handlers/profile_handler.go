@@ -1,20 +1,20 @@
 package handlers
 
 import (
-	"encoding/json"
 	"net/http"
 
 	"golang-api/config"
 	"golang-api/logger"
 	"golang-api/models"
+	"golang-api/utils"
 )
 
 func Profile(w http.ResponseWriter, r *http.Request) {
 
-	userID := r.Context().Value("userID").(int)	
+	userID := r.Context().Value("userID").(int)
 
 	logger.InfoLogger.Println(
-		"Profile access request:",
+		"Profile accessed:",
 		userID,
 	)
 
@@ -26,7 +26,10 @@ func Profile(w http.ResponseWriter, r *http.Request) {
 	WHERE id=?
 	`
 
-	err := config.DB.QueryRow(query, userID).Scan(
+	err := config.DB.QueryRow(
+		query,
+		userID,
+	).Scan(
 		&user.ID,
 		&user.Name,
 		&user.Email,
@@ -34,26 +37,24 @@ func Profile(w http.ResponseWriter, r *http.Request) {
 
 	if err != nil {
 
-		logger.WarnLogger.Println(
-			"Profile not found for user ID:",
-			userID,
+		logger.ErrorLogger.Println(
+			"Profile fetch failed:",
+			err,
 		)
 
-		http.Error(
+		utils.SendError(
 			w,
-			"User not found",
 			http.StatusNotFound,
+			"User not found",
 		)
 
 		return
 	}
 
-	logger.InfoLogger.Println(
-		"Profile fetched successfully:",
-		user.Email,
+	utils.SendSuccess(
+		w,
+		http.StatusOK,
+		"Profile fetched successfully",
+		user,
 	)
-
-	w.Header().Set("Content-Type", "application/json")
-
-	json.NewEncoder(w).Encode(user)
 }

@@ -8,6 +8,7 @@ import (
 	"golang-api/logger"
 	"golang-api/models"
 	"golang-api/services"
+	"golang-api/utils"
 )
 
 func RegisterUser(w http.ResponseWriter, r *http.Request) {
@@ -23,10 +24,10 @@ func RegisterUser(w http.ResponseWriter, r *http.Request) {
 			err,
 		)
 
-		http.Error(
+		utils.SendError(
 			w,
-			err.Error(),
 			http.StatusBadRequest,
+			err.Error(),
 		)
 
 		return
@@ -41,21 +42,21 @@ func RegisterUser(w http.ResponseWriter, r *http.Request) {
 			err,
 		)
 
-		http.Error(
+		utils.SendError(
 			w,
-			err.Error(),
 			http.StatusBadRequest,
+			err.Error(),
 		)
 
 		return
 	}
 
-	w.Header().Set(
-		"Content-Type",
-		"application/json",
+	utils.SendSuccess(
+		w,
+		http.StatusCreated,
+		"User registered successfully",
+		createdUser,
 	)
-
-	json.NewEncoder(w).Encode(createdUser)
 }
 
 func LoginUser(w http.ResponseWriter, r *http.Request) {
@@ -71,10 +72,10 @@ func LoginUser(w http.ResponseWriter, r *http.Request) {
 			err,
 		)
 
-		http.Error(
+		utils.SendError(
 			w,
-			"Invalid request payload",
 			http.StatusBadRequest,
+			err.Error(),
 		)
 
 		return
@@ -85,14 +86,14 @@ func LoginUser(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 
 		logger.WarnLogger.Println(
-			"Login failed for user:",
+			"Login failed:",
 			input.Email,
 		)
 
-		http.Error(
+		utils.SendError(
 			w,
-			err.Error(),
 			http.StatusUnauthorized,
+			err.Error(),
 		)
 
 		return
@@ -103,11 +104,14 @@ func LoginUser(w http.ResponseWriter, r *http.Request) {
 		input.Email,
 	)
 
-	w.Header().Set("Content-Type", "application/json")
-
-	json.NewEncoder(w).Encode(map[string]string{
-		"token": tokenString,
-	})
+	utils.SendSuccess(
+		w,
+		http.StatusOK,
+		"Login successful",
+		map[string]string{
+			"token": tokenString,
+		},
+	)
 }
 
 func LogoutUser(w http.ResponseWriter, r *http.Request) {
@@ -120,10 +124,10 @@ func LogoutUser(w http.ResponseWriter, r *http.Request) {
 			"Missing authorization token during logout",
 		)
 
-		http.Error(
+		utils.SendError(
 			w,
-			"Missing token",
 			http.StatusUnauthorized,
+			"Missing token",
 		)
 
 		return
@@ -143,16 +147,19 @@ func LogoutUser(w http.ResponseWriter, r *http.Request) {
 			err,
 		)
 
-		http.Error(
+		utils.SendError(
 			w,
-			"Failed to logout",
 			http.StatusInternalServerError,
+			"Failed to logout",
 		)
 
 		return
 	}
 
-	json.NewEncoder(w).Encode(map[string]string{
-		"message": "Logout successful",
-	})
+	utils.SendSuccess(
+		w,
+		http.StatusOK,
+		"Logout successful",
+		nil,
+	)
 }
