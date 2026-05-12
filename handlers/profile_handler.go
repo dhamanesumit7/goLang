@@ -11,7 +11,7 @@ import (
 
 func Profile(w http.ResponseWriter, r *http.Request) {
 
-	userID := r.Context().Value("userID").(int)
+	userID := r.Context().Value("userID").(int)	
 
 	logger.InfoLogger.Println(
 		"Profile access request:",

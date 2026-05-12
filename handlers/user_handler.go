@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"net/http"
 
-	"golang-api/config"
 	"golang-api/logger"
 	"golang-api/models"
+	"golang-api/services"
 )
 
 func CreateUser(w http.ResponseWriter, r *http.Request) {
@@ -32,40 +32,12 @@ func CreateUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	query := `
-	INSERT INTO users(name,email,password)
-	VALUES(?,?,?)
-	`
-
-	result, err := config.DB.Exec(
-		query,
-		user.Name,
-		user.Email,
-		user.Password,
-	)
+	id, err := services.CreateUserService(user)
 
 	if err != nil {
 
 		logger.ErrorLogger.Println(
-			"Create user database error:",
-			err,
-		)
-
-		http.Error(
-			w,
-			err.Error(),
-			http.StatusInternalServerError,
-		)
-
-		return
-	}
-
-	id, err := result.LastInsertId()
-
-	if err != nil {
-
-		logger.ErrorLogger.Println(
-			"Failed to fetch inserted user ID:",
+			"Create user failed:",
 			err,
 		)
 
@@ -92,57 +64,22 @@ func CreateUser(w http.ResponseWriter, r *http.Request) {
 
 func GetUsers(w http.ResponseWriter, r *http.Request) {
 
-	rows, err := config.DB.Query(
-		"SELECT id,name,email FROM users",
-	)
+	users, err := services.GetUsersService()
 
 	if err != nil {
 
 		logger.ErrorLogger.Println(
-			"Get users database error:",
+			"Failed to fetch users:",
 			err,
 		)
 
 		http.Error(
 			w,
-			err.Error(),
+			"Failed to fetch users",
 			http.StatusInternalServerError,
 		)
 
 		return
-	}
-
-	defer rows.Close()
-
-	var users []models.User
-
-	for rows.Next() {
-
-		var user models.User
-
-		err := rows.Scan(
-			&user.ID,
-			&user.Name,
-			&user.Email,
-		)
-
-		if err != nil {
-
-			logger.ErrorLogger.Println(
-				"Row scan error:",
-				err,
-			)
-
-			http.Error(
-				w,
-				err.Error(),
-				http.StatusInternalServerError,
-			)
-
-			return
-		}
-
-		users = append(users, user)
 	}
 
 	logger.InfoLogger.Println(
@@ -158,14 +95,12 @@ func DeleteUser(w http.ResponseWriter, r *http.Request) {
 
 	id := r.URL.Query().Get("id")
 
-	query := "DELETE FROM users WHERE id=?"
-
-	result, err := config.DB.Exec(query, id)
+	err := services.DeleteUserService(id)
 
 	if err != nil {
 
 		logger.ErrorLogger.Println(
-			"Delete user database error:",
+			"Delete user failed:",
 			err,
 		)
 
@@ -173,40 +108,6 @@ func DeleteUser(w http.ResponseWriter, r *http.Request) {
 			w,
 			err.Error(),
 			http.StatusInternalServerError,
-		)
-
-		return
-	}
-
-	rowsAffected, err := result.RowsAffected()
-
-	if err != nil {
-
-		logger.ErrorLogger.Println(
-			"Failed to get rows affected:",
-			err,
-		)
-
-		http.Error(
-			w,
-			"Failed to delete user",
-			http.StatusInternalServerError,
-		)
-
-		return
-	}
-
-	if rowsAffected == 0 {
-
-		logger.WarnLogger.Println(
-			"Delete failed - user not found:",
-			id,
-		)
-
-		http.Error(
-			w,
-			"User not found",
-			http.StatusNotFound,
 		)
 
 		return
@@ -257,24 +158,12 @@ func UpdateUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	query := `
-	UPDATE users
-	SET name=?, email=?, password=?
-	WHERE id=?
-	`
-
-	result, err := config.DB.Exec(
-		query,
-		user.Name,
-		user.Email,
-		user.Password,
-		id,
-	)
+	err = services.UpdateUserService(user, id)
 
 	if err != nil {
 
 		logger.ErrorLogger.Println(
-			"Update user database error:",
+			"Update user failed:",
 			err,
 		)
 
@@ -282,40 +171,6 @@ func UpdateUser(w http.ResponseWriter, r *http.Request) {
 			w,
 			err.Error(),
 			http.StatusInternalServerError,
-		)
-
-		return
-	}
-
-	rowsAffected, err := result.RowsAffected()
-
-	if err != nil {
-
-		logger.ErrorLogger.Println(
-			"Failed to get rows affected:",
-			err,
-		)
-
-		http.Error(
-			w,
-			"Failed to update user",
-			http.StatusInternalServerError,
-		)
-
-		return
-	}
-
-	if rowsAffected == 0 {
-
-		logger.WarnLogger.Println(
-			"Update failed - user not found:",
-			id,
-		)
-
-		http.Error(
-			w,
-			"User not found",
-			http.StatusNotFound,
 		)
 
 		return
@@ -332,3 +187,4 @@ func UpdateUser(w http.ResponseWriter, r *http.Request) {
 
 	json.NewEncoder(w).Encode(user)
 }
+
