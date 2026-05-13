@@ -16,6 +16,8 @@ func main() {
 
 	config.ConnectRedis()
 
+	config.ConnectKafka()
+
 	routes.SetupRoutes()
 
 	logger.InfoLogger.Println(

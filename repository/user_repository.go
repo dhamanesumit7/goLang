@@ -137,3 +137,25 @@ func GetUserByEmail(email string) (models.User, error) {
 
 	return user, err
 }
+
+func CheckUserExists(email string) (bool, error) {
+
+	var count int
+
+	query := `
+	SELECT COUNT(*)
+	FROM users
+	WHERE email=?
+	`
+
+	err := config.DB.QueryRow(
+		query,
+		email,
+	).Scan(&count)
+
+	if err != nil {
+		return false, err
+	}
+
+	return count > 0, nil
+}

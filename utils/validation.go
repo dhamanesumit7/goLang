@@ -1,50 +1,77 @@
 package utils
 
 import (
-	"errors"
 	"regexp"
 
 	"golang-api/models"
 )
 
-func ValidateUser(user models.User) error {
+func ValidateUser(user models.User) []string {
+
+	var errors []string
 
 	if user.Name == "" {
-		return errors.New("name is required")
+
+		errors = append(
+			errors,
+			"name is required",
+		)
 	}
 
 	if user.Email == "" {
-		return errors.New("email is required")
+
+		errors = append(
+			errors,
+			"email is required",
+		)
+
+	} else if !isValidEmail(user.Email) {
+
+		errors = append(
+			errors,
+			"invalid email format",
+		)
 	}
 
-	if !isValidEmail(user.Email) {
-		return errors.New("invalid email format")
-	}
+	if user.Password == "" {
 
-	if len(user.Password) < 6 {
-		return errors.New(
+		errors = append(
+			errors,
+			"password is required",
+		)
+
+	} else if len(user.Password) < 6 {
+
+		errors = append(
+			errors,
 			"password must be at least 6 characters",
 		)
 	}
 
-	return nil
+	return errors
 }
 
-func ValidateLogin(user models.User) error {
+func ValidateLogin(user models.User) []string {
+
+	var errors []string
 
 	if user.Email == "" {
-		return errors.New("email is required")
+
+		errors = append(
+			errors,
+			"email is required",
+		)
 	}
 
 	if user.Password == "" {
-		return errors.New("password is required")
+
+		errors = append(
+			errors,
+			"password is required",
+		)
 	}
 
-	if !isValidEmail(user.Email) {
-		return errors.New("invalid email format")
-	}
-
-	return nil
+	return errors
 }
 
 func isValidEmail(email string) bool {

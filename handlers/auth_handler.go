@@ -37,7 +37,7 @@ func RegisterUser(w http.ResponseWriter, r *http.Request) {
 
 	if err != nil {
 
-		logger.ErrorLogger.Println(
+		logger.WarnLogger.Println(
 			"Register service failed:",
 			err,
 		)
